@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  api:
+    container_name: api
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    env_file: .env
+    ports:
+      - 3229:9229
+      - 3001:3001
+    volumes:
+      - ./src:/home/app/src:cached
+      - ./package.json:/home/app/package.json:cached
+      - ./output-emails:/home/app/output-emails:cached
+    depends_on:
+      - descomplica-pgsql
+
+  descomplica-pgsql:
+    build:
+      context: ./docker/dev
+      dockerfile: db.Dockerfile
+    image: postgres:13-alpine
+    ports:
+      - '5432:5432'
+    container_name: 'pgsql'
+    restart: always
+    volumes:
+      - ./pg-data:/data/db:cached
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpassword
+
+  descomplica-redis:
+    container_name: 'redis'
+    image: redis:4.0.10-alpine
+    ports:
+      - 6379:6379
